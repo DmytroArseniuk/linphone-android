@@ -22,8 +22,6 @@ package org.linphone.chat;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
-import android.provider.MediaStore;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,31 +29,31 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-//import org.linphone.Chat;
 import org.linphone.LinphoneManager;
 import org.linphone.LinphoneUtils;
 import org.linphone.R;
 import org.linphone.activities.LinphoneActivity;
 import org.linphone.contacts.ContactsManager;
 import org.linphone.contacts.LinphoneContact;
-import org.linphone.core.Address;
-import org.linphone.core.ChatMessage;
 import org.linphone.core.ChatRoom;
 import org.linphone.core.ChatRoomListenerStub;
+import org.linphone.ui.SelectableAdapter;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 
-public class ChatRoomsAdapter extends RecyclerView.Adapter<ChatRoomsAdapter.ChatRoomViewHolder> {
+//import org.linphone.Chat;
 
-	public class ChatRoomViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+public class ChatRoomsAdapter extends SelectableAdapter<ChatRoomsAdapter.ChatRoomViewHolder> {
+//public class ChatRoomsAdapter extends RecyclerView.Adapter<ChatRoomsAdapter.ChatRoomViewHolder> {
+
+
+	public static class ChatRoomViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener{
 		public TextView lastMessageSenderView;
 		public TextView lastMessageView;
 		public TextView date;
@@ -65,8 +63,10 @@ public class ChatRoomsAdapter extends RecyclerView.Adapter<ChatRoomsAdapter.Chat
 		public ImageView contactPicture;
 		public Context mContext;
 		public ChatRoom mRoom;
+		View selectedOverlay;
+		public ClickListener listener;
 
-		public ChatRoomViewHolder(Context context,View itemView) {
+		public ChatRoomViewHolder(Context context,View itemView, ClickListener listener) {
 			super(itemView);
 			this.mContext= context;
 			this.lastMessageSenderView = itemView.findViewById(R.id.lastMessageSender);
@@ -76,7 +76,10 @@ public class ChatRoomsAdapter extends RecyclerView.Adapter<ChatRoomsAdapter.Chat
 			this.unreadMessages = itemView.findViewById(R.id.unreadMessages);
 			this.delete = itemView.findViewById(R.id.delete_chatroom);
 			this.contactPicture = itemView.findViewById(R.id.contact_picture);
+			//this.selectedOverlay = itemView.findViewById(R.id.selected_overlay);
+			this.listener = listener;
 			itemView.setOnClickListener(this);
+			itemView.setOnLongClickListener(this);
 		}
 		public void bindChatRoom(ChatRoom room) {
 
@@ -96,10 +99,23 @@ public class ChatRoomsAdapter extends RecyclerView.Adapter<ChatRoomsAdapter.Chat
 		public void onClick(View v) {
 
 			// 5. Handle the onClick event for the ViewHolder
-			if (this.mRoom != null) {
-				LinphoneActivity.instance().goToChat(mRoom.getPeerAddress().asString());
+//			if (this.mRoom != null) {
+//				LinphoneActivity.instance().goToChat(mRoom.getPeerAddress().asString());
+//			}
+
+			if (listener != null) {
+				listener.onItemClicked(getAdapterPosition());
 			}
 		}
+
+		@Override
+		public boolean onLongClick(View v) {
+			if (listener != null) {
+				return listener.onItemLongClicked(getAdapterPosition());
+			}
+			return false;
+		}
+
 
 		public String getSender(ChatRoom mRoom){
 			if (mRoom.getLastMessageInHistory() != null) {
@@ -135,20 +151,35 @@ public class ChatRoomsAdapter extends RecyclerView.Adapter<ChatRoomsAdapter.Chat
 			}
 		}
 
+		public interface ClickListener {
+			public void onItemClicked(int position);
+			public boolean onItemLongClicked(int position);
+		}
+
 
 
 
 	}
 
+
+	/////////////////////////////////////////////////////////////HOLDER END
+
+
 	private Context mContext;
 	private List<ChatRoom> mRooms;
 	private LayoutInflater mLayoutInflater;
-	private Bitmap mDefaultBitmap, mDefaultGroupBitmap;
+	private static Bitmap mDefaultBitmap;
+	private Bitmap mDefaultGroupBitmap;
 	private ChatRoomListenerStub mListener;
 	private int itemResource;
+	private ChatRoomViewHolder.ClickListener clickListener;
 
-	public ChatRoomsAdapter(Context context, int itemResource, List<ChatRoom> mRooms) {
+
+//	public ChatRoomsAdapter(Context context, int itemResource, List<ChatRoom> mRooms) {
+	public ChatRoomsAdapter(Context context, int itemResource, List<ChatRoom> mRooms, ChatRoomViewHolder.ClickListener clickListener) {
+
 		super();
+		this.clickListener = clickListener;
 		this.mRooms = mRooms;
 		this.mContext = context;
 		this.itemResource = itemResource;
@@ -167,13 +198,19 @@ public class ChatRoomsAdapter extends RecyclerView.Adapter<ChatRoomsAdapter.Chat
 
 	}
 
+
+
 	@Override
 	public ChatRoomViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
 		// 3. Inflate the view and return the new ViewHolder
 		View view = LayoutInflater.from(parent.getContext())
 				.inflate(this.itemResource, parent, false);
-		return new ChatRoomViewHolder(this.mContext, view);
+
+		//			Before listener
+		//return new ChatRoomViewHolder(this.mContext, view);
+		return new ChatRoomViewHolder(this.mContext, view, clickListener);
+
 	}
 
 	@Override
@@ -182,8 +219,17 @@ public class ChatRoomsAdapter extends RecyclerView.Adapter<ChatRoomsAdapter.Chat
 		// 5. Use position to access the correct Bakery object
 		ChatRoom room = this.mRooms.get(position);
 
+		//Colors the item when selected
+		holder.delete.setVisibility(isSelected(position) ? View.VISIBLE : View.INVISIBLE);
+
 		// 6. Bind the bakery object to the holder
 		holder.bindChatRoom(room);
+
+
+
+
+
+
 	}
 
 	public void refresh() {

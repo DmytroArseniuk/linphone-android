@@ -24,7 +24,10 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -56,9 +59,14 @@ import java.util.List;
 
 import static org.linphone.fragments.FragmentsAvailable.CHAT_LIST;
 
-public class ChatListFragment extends Fragment implements ContactsUpdatedListener, ListSelectionHelper.DeleteListener {
+//public class ChatListFragment extends Fragment implements ContactsUpdatedListener, ListSelectionHelper.DeleteListener {
+public class ChatListFragment extends Fragment implements ContactsUpdatedListener, /**ListSelectionHelper.DeleteListener,*/ ChatRoomsAdapter.ChatRoomViewHolder.ClickListener {
+
 //public class ChatListFragment extends Fragment {
 	//	private LayoutInflater mInflater;
+	private ActionModeCallback actionModeCallback = new ActionModeCallback();
+	private ActionMode actionMode;
+
 	private RecyclerView mChatRoomsList;
 	private TextView mNoChatHistory;
 	private ImageView mNewDiscussionButton, mBackToCallButton;
@@ -76,12 +84,22 @@ public class ChatListFragment extends Fragment implements ContactsUpdatedListene
 //		mInflater = inflater;
 
 		super.onCreate(savedInstanceState);
+		setHasOptionsMenu(true);
 		mRooms = new ArrayList<>(Arrays.asList(LinphoneManager.getLc().getChatRooms()));
 		this.mContext = getActivity().getApplicationContext();
 		View view = inflater.inflate(R.layout.chatlist, container, false);
 		RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(mContext);
 
-		mChatRoomsAdapter = new ChatRoomsAdapter(mContext, R.layout.chatlist_cell, mRooms);
+
+
+//		mChatRoomsAdapter = new ChatRoomsAdapter(mContext, R.layout.chatlist_cell, mRooms);
+		mChatRoomsAdapter = new ChatRoomsAdapter(mContext, R.layout.chatlist_cell, mRooms,this);
+
+
+
+
+
+
 //		mSelectionHelper = new ListSelectionHelper(view, this);
 //		mChatRoomsAdapter = new ChatRoomsAdapter(this, mSelectionHelper, mRooms);
 //		mSelectionHelper.setAdapter(mChatRoomsAdapter);
@@ -148,6 +166,84 @@ public class ChatListFragment extends Fragment implements ContactsUpdatedListene
 		return view;
 	}
 
+	@Override
+	public void onItemClicked(int position) {
+		if (actionMode != null) {
+			toggleSelection(position);
+		}else{
+			ChatRoom room = (ChatRoom) mChatRoomsAdapter.getItem(position);
+			LinphoneActivity.instance().goToChat(room.getPeerAddress().asString());
+		}
+	}
+
+	@Override
+	public boolean onItemLongClicked(int position) {
+		if (actionMode == null) {
+			actionMode = getActivity().startActionMode(actionModeCallback);
+		}
+
+		toggleSelection(position);
+
+		return true;
+	}
+
+	private void toggleSelection(int position) {
+		mChatRoomsAdapter.toggleSelection(position);
+		int count = mChatRoomsAdapter.getSelectedItemCount();
+
+		if (count == 0) {
+			actionMode.finish();
+		} else {
+			actionMode.setTitle(String.valueOf(count));
+			actionMode.invalidate();
+		}
+	}
+
+	private class ActionModeCallback implements ActionMode.Callback {
+		@SuppressWarnings("unused")
+		private final String TAG = ActionModeCallback.class.getSimpleName();
+
+		@Override
+		public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+			mode.getMenuInflater().inflate (R.menu.edit_list_menu, menu);
+				return true;
+		}
+
+		@Override
+		public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+			return false;
+		}
+
+		@Override
+		public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+			switch (item.getItemId()) {
+				case R.id.delete_button:
+					// TODO: actually remove items
+					Log.d(TAG, "menu_remove");
+					mode.finish();
+					return true;
+
+				default:
+					return false;
+			}
+		}
+
+		@Override
+		public void onDestroyActionMode(ActionMode mode) {
+			mChatRoomsAdapter.clearSelection();
+			actionMode = null;
+		}
+	}
+
+
+
+
+
+
+
+
+
+
 	private void refreshChatRoomsList() {
 		mChatRoomsAdapter.refresh();
 		mNoChatHistory.setVisibility(mChatRoomsAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
@@ -198,32 +294,32 @@ public class ChatListFragment extends Fragment implements ContactsUpdatedListene
 		super.onPause();
 	}
 
-	@Override
-	public void onDeleteSelection(Object[] objectsToDelete) {
-		Core lc = LinphoneManager.getLcIfManagerNotDestroyedOrNull();
-		mChatRoomDeletionPendingCount = objectsToDelete.length;
-		for (Object obj : objectsToDelete) {
-			ChatRoom room = (ChatRoom)obj;
-
-			for (EventLog eventLog : room.getHistoryEvents(0)) {
-				if (eventLog.getType() == EventLog.Type.ConferenceChatMessage) {
-					ChatMessage message = eventLog.getChatMessage();
-					if (message.getAppdata() != null && !message.isOutgoing()) {
-						File file = new File(message.getAppdata());
-						if (file.exists()) {
-							file.delete(); // Delete downloaded file from incoming message that will be deleted
-						}
-					}
-				}
-			}
-
-			room.addListener(mChatRoomListener);
-			lc.deleteChatRoom(room);
-		}
-		if (mChatRoomDeletionPendingCount > 0) {
-			mWaitLayout.setVisibility(View.VISIBLE);
-		}
-	}
+//	@Override
+//	public void onDeleteSelection(Object[] objectsToDelete) {
+//		Core lc = LinphoneManager.getLcIfManagerNotDestroyedOrNull();
+//		mChatRoomDeletionPendingCount = objectsToDelete.length;
+//		for (Object obj : objectsToDelete) {
+//			ChatRoom room = (ChatRoom)obj;
+//
+//			for (EventLog eventLog : room.getHistoryEvents(0)) {
+//				if (eventLog.getType() == EventLog.Type.ConferenceChatMessage) {
+//					ChatMessage message = eventLog.getChatMessage();
+//					if (message.getAppdata() != null && !message.isOutgoing()) {
+//						File file = new File(message.getAppdata());
+//						if (file.exists()) {
+//							file.delete(); // Delete downloaded file from incoming message that will be deleted
+//						}
+//					}
+//				}
+//			}
+//
+//			room.addListener(mChatRoomListener);
+//			lc.deleteChatRoom(room);
+//		}
+//		if (mChatRoomDeletionPendingCount > 0) {
+//			mWaitLayout.setVisibility(View.VISIBLE);
+//		}
+//	}
 
 		@Override
 	public void onContactsUpdated() {
