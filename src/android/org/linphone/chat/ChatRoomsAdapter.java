@@ -23,6 +23,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -66,6 +67,7 @@ public class ChatRoomsAdapter extends SelectableAdapter<ChatRoomsAdapter.ChatRoo
 		View selectedOverlay;
 		public ClickListener listener;
 
+
 		public ChatRoomViewHolder(Context context,View itemView, ClickListener listener) {
 			super(itemView);
 			this.mContext= context;
@@ -78,6 +80,7 @@ public class ChatRoomsAdapter extends SelectableAdapter<ChatRoomsAdapter.ChatRoo
 			this.contactPicture = itemView.findViewById(R.id.contact_picture);
 			//this.selectedOverlay = itemView.findViewById(R.id.selected_overlay);
 			this.listener = listener;
+
 			itemView.setOnClickListener(this);
 			itemView.setOnLongClickListener(this);
 		}
@@ -90,7 +93,11 @@ public class ChatRoomsAdapter extends SelectableAdapter<ChatRoomsAdapter.ChatRoo
 			this.date.setText(mRoom.getLastMessageInHistory()!=null ? LinphoneUtils.timestampToHumanDate(this.mContext, mRoom.getLastUpdateTime(), R.string.messages_list_date_format) : "");
 			this.displayName.setText(getContact(mRoom));
 			this.unreadMessages.setText(String.valueOf(LinphoneManager.getInstance().getUnreadCountForChatRoom(mRoom)));
-			this.delete.setChecked(!this.delete.isChecked());
+//			this.delete.setChecked(!this.delete.isChecked());
+//			this.delete.setChecked(!this.delete.isChecked());
+//			this.delete.setVisibility(this.editionMode == true ? View.VISIBLE : View.INVISIBLE);
+//			this.unreadMessages.setVisibility(this.editionMode == false ? View.VISIBLE : View.INVISIBLE);
+
 			getAvatar(mRoom);
 
 		}
@@ -111,6 +118,7 @@ public class ChatRoomsAdapter extends SelectableAdapter<ChatRoomsAdapter.ChatRoo
 		@Override
 		public boolean onLongClick(View v) {
 			if (listener != null) {
+
 				return listener.onItemLongClicked(getAdapterPosition());
 			}
 			return false;
@@ -159,6 +167,7 @@ public class ChatRoomsAdapter extends SelectableAdapter<ChatRoomsAdapter.ChatRoo
 
 
 
+
 	}
 
 
@@ -173,12 +182,13 @@ public class ChatRoomsAdapter extends SelectableAdapter<ChatRoomsAdapter.ChatRoo
 	private ChatRoomListenerStub mListener;
 	private int itemResource;
 	private ChatRoomViewHolder.ClickListener clickListener;
-
+	private boolean editionMode;
 
 //	public ChatRoomsAdapter(Context context, int itemResource, List<ChatRoom> mRooms) {
 	public ChatRoomsAdapter(Context context, int itemResource, List<ChatRoom> mRooms, ChatRoomViewHolder.ClickListener clickListener) {
 
 		super();
+		this.editionMode = false;
 		this.clickListener = clickListener;
 		this.mRooms = mRooms;
 		this.mContext = context;
@@ -220,8 +230,11 @@ public class ChatRoomsAdapter extends SelectableAdapter<ChatRoomsAdapter.ChatRoo
 		ChatRoom room = this.mRooms.get(position);
 
 		//Colors the item when selected
-		holder.delete.setVisibility(isSelected(position) ? View.VISIBLE : View.INVISIBLE);
+		holder.delete.setVisibility(this.editionMode == true ? View.VISIBLE : View.INVISIBLE);
+		holder.unreadMessages.setVisibility(this.editionMode == false ? View.VISIBLE : View.INVISIBLE);
 
+		holder.delete.setChecked(isSelected(position) ? true : false);
+//		holder.unreadMessages.setVisibility(View.VISIBLE);
 		// 6. Bind the bakery object to the holder
 		holder.bindChatRoom(room);
 
@@ -231,7 +244,16 @@ public class ChatRoomsAdapter extends SelectableAdapter<ChatRoomsAdapter.ChatRoo
 
 
 	}
+	public void setEditionMode(ActionMode actionMode) {
+		if ( actionMode != null) {
+			this.editionMode=true;
+			this.notifyDataSetChanged();
+		} else {
+			this.editionMode=false;
+			this.notifyDataSetChanged();
+		}
 
+	}
 	public void refresh() {
 		mRooms = new ArrayList<>(Arrays.asList(LinphoneManager.getLc().getChatRooms()));
 		Collections.sort(mRooms, new Comparator<ChatRoom>() {
@@ -277,6 +299,7 @@ public class ChatRoomsAdapter extends SelectableAdapter<ChatRoomsAdapter.ChatRoo
 	public long getItemId(int position) {
 		return position;
 	}
+
 
 //	@Override
 //	public View getView(final int position, View convertView, ViewGroup viewGroup) {

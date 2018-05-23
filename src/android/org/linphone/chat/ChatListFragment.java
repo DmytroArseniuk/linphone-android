@@ -30,9 +30,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -66,13 +68,14 @@ public class ChatListFragment extends Fragment implements ContactsUpdatedListene
 	//	private LayoutInflater mInflater;
 	private ActionModeCallback actionModeCallback = new ActionModeCallback();
 	private ActionMode actionMode;
-
+	private LinearLayout mEditTopBar, mTopBar;
+	private ImageView mEditButton, mSelectAllButton, mDeselectAllButton, mDeleteSelectionButton, mCancelButton;
 	private RecyclerView mChatRoomsList;
 	private TextView mNoChatHistory;
 	private ImageView mNewDiscussionButton, mBackToCallButton;
 	private ChatRoomsAdapter mChatRoomsAdapter;
 	private CoreListenerStub mListener;
-	private ListSelectionHelper mSelectionHelper;
+//	private ListSelectionHelper mSelectionHelper;
 	private RelativeLayout mWaitLayout;
 	private int mChatRoomDeletionPendingCount;
 	private ChatRoomListenerStub mChatRoomListener;
@@ -84,6 +87,7 @@ public class ChatListFragment extends Fragment implements ContactsUpdatedListene
 //		mInflater = inflater;
 
 		super.onCreate(savedInstanceState);
+
 		setHasOptionsMenu(true);
 		mRooms = new ArrayList<>(Arrays.asList(LinphoneManager.getLc().getChatRooms()));
 		this.mContext = getActivity().getApplicationContext();
@@ -105,14 +109,43 @@ public class ChatListFragment extends Fragment implements ContactsUpdatedListene
 //		mSelectionHelper.setAdapter(mChatRoomsAdapter);
 //		mSelectionHelper.setDialogMessage(R.string.chat_room_delete_dialog);
 
+
+
+
+
 		mWaitLayout = view.findViewById(R.id.waitScreen);
 		mWaitLayout.setVisibility(View.GONE);
 
 		mChatRoomsList = view.findViewById(R.id.chatList);
 		mChatRoomsList.setAdapter(mChatRoomsAdapter);
 		mChatRoomsList.setLayoutManager(layoutManager);
-		mNoChatHistory = view.findViewById(R.id.noChatHistory);
-		mNoChatHistory.setVisibility(View.GONE);
+//		mNoChatHistory = view.findViewById(R.id.noChatHistory);
+
+//		mNoChatHistory.setVisibility(View.GONE);
+		mEditTopBar = view.findViewById(R.id.edit_list);
+		mTopBar = view.findViewById(R.id.top_bar);
+		mSelectAllButton = view.findViewById(R.id.select_all);
+		mEditButton = view.findViewById(R.id.edit);
+		mEditButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				actionMode = getActivity().startActionMode(actionModeCallback);
+//				mChatRoomsAdapter.setEditionMode(actionMode);
+//				mTopBar.setVisibility(View.GONE);
+//				mEditTopBar.setVisibility(View.VISIBLE);
+			}
+		});
+
+		mCancelButton = view.findViewById(R.id.cancel);
+//		mCancelButton.setOnClickListener(new View.OnClickListener() {
+//			@Override
+//			public void onClick(View v) {
+//				actionMode.invalidate();
+//			}
+//		});
+		mDeselectAllButton = view.findViewById(R.id.deselect_all);
+
+
 
 		mNewDiscussionButton = view.findViewById(R.id.new_discussion);
 		mNewDiscussionButton.setOnClickListener(new View.OnClickListener() {
@@ -179,6 +212,7 @@ public class ChatListFragment extends Fragment implements ContactsUpdatedListene
 	@Override
 	public boolean onItemLongClicked(int position) {
 		if (actionMode == null) {
+
 			actionMode = getActivity().startActionMode(actionModeCallback);
 		}
 
@@ -189,12 +223,19 @@ public class ChatListFragment extends Fragment implements ContactsUpdatedListene
 
 	private void toggleSelection(int position) {
 		mChatRoomsAdapter.toggleSelection(position);
+//
 		int count = mChatRoomsAdapter.getSelectedItemCount();
 
-		if (count == 0) {
-			actionMode.finish();
+		if (count <= mChatRoomsAdapter.getItemCount()) {
+//			actionMode.finish();
+			mDeselectAllButton.setVisibility(View.GONE);
+			mSelectAllButton.setVisibility(View.VISIBLE);
+			actionMode.invalidate();
 		} else {
-			actionMode.setTitle(String.valueOf(count));
+
+//			actionMode.setTitle(String.valueOf(count));
+			mSelectAllButton.setVisibility(View.GONE);
+			mDeselectAllButton.setVisibility(View.VISIBLE);
 			actionMode.invalidate();
 		}
 	}
@@ -205,12 +246,45 @@ public class ChatListFragment extends Fragment implements ContactsUpdatedListene
 
 		@Override
 		public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+			mTopBar.setVisibility(View.GONE);
+			mEditTopBar.setVisibility(View.VISIBLE);
+
+
+			for (Integer i = 0; i <= mChatRoomsAdapter.getItemCount(); i++) {
+				mChatRoomsAdapter.setEditionMode(mode);
+			}
 			mode.getMenuInflater().inflate (R.menu.edit_list_menu, menu);
+
+			mCancelButton.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					actionMode.finish();
+				}
+			});
+
+
+			//Add all non-selected items to the selection
+			mSelectAllButton.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					for (Integer i = 0; i <= mChatRoomsAdapter.getItemCount(); i++) {
+						if (!mChatRoomsAdapter.isSelected(i)) {
+							toggleSelection(i);
+						}
+					}
+				}
+			});
+
 				return true;
 		}
 
 		@Override
 		public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+//			int cpt = 0;
+//			while (cpt <= mChatRoomsAdapter.getItemCount()) {
+//				mChatRoomsAdapter.setEditionMode(mode);
+//				cpt++;
+//			}
 			return false;
 		}
 
@@ -222,7 +296,8 @@ public class ChatListFragment extends Fragment implements ContactsUpdatedListene
 					Log.d(TAG, "menu_remove");
 					mode.finish();
 					return true;
-
+				case R.id.cancel:
+					mode.finish();
 				default:
 					return false;
 			}
@@ -230,9 +305,15 @@ public class ChatListFragment extends Fragment implements ContactsUpdatedListene
 
 		@Override
 		public void onDestroyActionMode(ActionMode mode) {
+			mTopBar.setVisibility(View.VISIBLE);
+			mEditTopBar.setVisibility(View.GONE);
+
 			mChatRoomsAdapter.clearSelection();
 			actionMode = null;
+			mChatRoomsAdapter.setEditionMode(actionMode);
+
 		}
+
 	}
 
 
@@ -246,7 +327,7 @@ public class ChatListFragment extends Fragment implements ContactsUpdatedListene
 
 	private void refreshChatRoomsList() {
 		mChatRoomsAdapter.refresh();
-		mNoChatHistory.setVisibility(mChatRoomsAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+//		mNoChatHistory.setVisibility(mChatRoomsAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
 	}
 
 	public void displayFirstChat() {
@@ -328,7 +409,7 @@ public class ChatListFragment extends Fragment implements ContactsUpdatedListene
 
 		ChatRoomsAdapter adapter = (ChatRoomsAdapter) mChatRoomsList.getAdapter();
 		if (adapter != null) {
-			//adapter.notifyDataSetInvalidated();
+//			adapter.notifyDataSetInvalidated();
 		}
 	}
 }
