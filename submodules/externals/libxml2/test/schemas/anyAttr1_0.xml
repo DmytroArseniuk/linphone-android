@@ -24,7 +24,7 @@
 	<inters.2_1 barA="o" foo:barC="o"/>
 	<inters.3_1 bar:barB="o"/>
 	<inters.4_1 barA="o" foo:barC="o"/>
-	<!--inters.5_1 barA="o" bar:barB="o" foo:barC="o"/-->
+	<!--inters.5_1 barA="o" context_bar:barB="o" foo:barC="o"/-->
 	<inters.6_1 bar:barB="o"/>
 </foo>
 

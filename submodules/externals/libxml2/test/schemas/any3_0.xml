@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!-- Tests xsd:any.
-	invalid: <bar.A/> and <foo:bar.B/>
-	valid: <bar:bar.C/>
+	invalid: <context_bar.A/> and <foo:context_bar.B/>
+	valid: <context_bar:context_bar.C/>
 -->
 <foo:foo 
 	xmlns:foo="http://FOO" 

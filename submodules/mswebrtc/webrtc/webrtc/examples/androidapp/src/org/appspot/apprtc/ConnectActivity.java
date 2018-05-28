@@ -153,7 +153,7 @@ public class ConnectActivity extends Activity {
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    // Handle presses on the action bar items.
+    // Handle presses on the action context_bar items.
     if (item.getItemId() == R.id.action_settings) {
       Intent intent = new Intent(this, SettingsActivity.class);
       startActivity(intent);

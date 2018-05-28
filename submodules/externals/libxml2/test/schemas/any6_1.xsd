@@ -7,13 +7,13 @@ local complex type: The content model is not determinist.
 
 As per Xerces and XSV this schema is OK.
 
-The problem appears when the maxOccurs of <bar> is greater than
+The problem appears when the maxOccurs of <context_bar> is greater than
 the one of the <any> wildcard. Additionally if both are "unbounded".
 If the latter is a different issue we should add an explicit test
 for it.
 
 Examples:
-<bar>        <any>        result
+<context_bar>        <any>        result
  2            1           error
  2            2           OK
  1            2           OK

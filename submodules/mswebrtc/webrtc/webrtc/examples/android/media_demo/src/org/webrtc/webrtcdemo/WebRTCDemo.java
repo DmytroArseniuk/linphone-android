@@ -107,7 +107,7 @@ public class WebRTCDemo extends Activity implements MenuStateProvider {
     mediaEngine.setDebuging(getResources().getBoolean(
         R.bool.apm_debug_enabled_default));
 
-    // Create action bar with all tabs.
+    // Create action context_bar with all tabs.
     ActionBar actionBar = getActionBar();
     actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
     actionBar.setDisplayShowTitleEnabled(false);
@@ -146,7 +146,7 @@ public class WebRTCDemo extends Activity implements MenuStateProvider {
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    // Handle presses on the action bar items
+    // Handle presses on the action context_bar items
     switch (item.getItemId()) {
       case R.id.action_exit:
         MainMenuFragment main = (MainMenuFragment)getFragmentManager()

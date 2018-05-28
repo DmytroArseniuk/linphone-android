@@ -224,7 +224,7 @@ public class NetworkMonitorTest extends ActivityTestCase {
     assertFalse(observer.hasReceivedNotification());
 
     // We shouldn't be notified if we're connected to non-Wifi and the Wifi SSID changes.
-    wifiDelegate.setWifiSSID("bar");
+    wifiDelegate.setWifiSSID("context_bar");
     receiver.onReceive(getInstrumentation().getTargetContext(), connectivityIntent);
     assertFalse(observer.hasReceivedNotification());
 

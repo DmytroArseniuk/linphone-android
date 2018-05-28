@@ -17,7 +17,7 @@
 <!ENTITY pound  "&#163;"> <!-- pound sign, U+00A3 ISOnum -->
 <!ENTITY curren "&#164;"> <!-- currency sign, U+00A4 ISOnum -->
 <!ENTITY yen    "&#165;"> <!-- yen sign = yuan sign, U+00A5 ISOnum -->
-<!ENTITY brvbar "&#166;"> <!-- broken bar = broken vertical bar,
+<!ENTITY brvbar "&#166;"> <!-- broken context_bar = broken vertical context_bar,
                                   U+00A6 ISOnum -->
 <!ENTITY sect   "&#167;"> <!-- section sign, U+00A7 ISOnum -->
 <!ENTITY uml    "&#168;"> <!-- diaeresis = spacing diaeresis,

@@ -11,13 +11,13 @@
 	<basic.B foo:barC="o"/>
 	<!-- not allowed: foo:barC -->
 	<basic.C foo:barC="o"/>
-	<!-- not allowed: barA, bar:barB -->
+	<!-- not allowed: barA, context_bar:barB -->
 	<basic.D barA="o" bar:barB="o"/>
-	<!-- not allowed: bar:barB -->
+	<!-- not allowed: context_bar:barB -->
 	<inters.2_1 barA="o" bar:barB="o" foo:barC="o"/>
 	<!-- not allowed: barA, foo:barC -->
 	<inters.3_1 barA="o" bar:barB="o" foo:barC="o"/>
-	<!-- not allowed: bar:barB -->
+	<!-- not allowed: context_bar:barB -->
 	<inters.4_1 barA="o" bar:barB="o" foo:barC="o"/>
 	<!-- not allowed: barA, foo:barC -->
 	<inters.6_1 barA="o" bar:barB="o" foo:barC="o"/>
