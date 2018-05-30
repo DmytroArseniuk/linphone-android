@@ -29,6 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.linphone.LinphoneManager;
@@ -47,7 +48,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
 
 //import org.linphone.Chat;
 
@@ -65,8 +65,8 @@ public class ChatRoomsAdapter extends SelectableAdapter<ChatRoomsAdapter.ChatRoo
 		public ImageView contactPicture;
 		public Context mContext;
 		public ChatRoom mRoom;
-		View selectedOverlay;
 		public ClickListener listener;
+		public RelativeLayout viewBackground, viewForeground;
 
 
 		public ChatRoomViewHolder(Context context,View itemView, ClickListener listener) {
@@ -204,7 +204,7 @@ public class ChatRoomsAdapter extends SelectableAdapter<ChatRoomsAdapter.ChatRoo
 
 
 	private Context mContext;
-	private List<ChatRoom> mRooms;
+	public List<ChatRoom> mRooms;
 	private LayoutInflater mLayoutInflater;
 	private static Bitmap mDefaultBitmap;
 	private Bitmap mDefaultGroupBitmap;
